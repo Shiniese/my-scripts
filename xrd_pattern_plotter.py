@@ -41,6 +41,8 @@ FILE_TO_PALETTE_DICT = {
     'XRD-TJ-700.txt': '#e65100',           # 深橙红（温暖、有冲击力）
     'XRD-TJ-raw.txt': '#ff8c69',           # 浅橙红（柔和，带一点暖意）
 }
+# 每条曲线之间的垂直偏移量
+OFFSET_STEP = 500  # 可调整，比如 300 或 800
 # === 自己需要修改的变量 ===
 
 import os
@@ -68,16 +70,13 @@ assert len(files) == len(FILE_TO_LABEL_DICT), (
 # 创建画布
 plt.figure(figsize=(10, 6))
 
-# 每条曲线之间的垂直偏移量
-offset_step = 500  # 可调整，比如 300 或 800
-
 # 绘制每个样品
 for i, file in enumerate(files):
     # 读取文件
     data = pd.read_csv(file, sep=r'\s+', header=None, names=['2theta', 'intensity'])
     
     # 应用垂直偏移
-    data['intensity_shifted'] = data['intensity'] - i * offset_step
+    data['intensity_shifted'] = data['intensity'] - i * OFFSET_STEP
     
     # 绘制曲线（不显示具体数值，只看形状）
     sns.lineplot(
