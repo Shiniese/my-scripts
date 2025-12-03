@@ -94,7 +94,8 @@ plt.yticks([])
 plt.xlabel("2θ (°)", fontweight='bold')
 plt.ylabel("Intensity (a.u.)", fontweight='bold')
 
-plt.legend()
+# 优化图例：由于图例可能很多，放在图外或自动调整
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
 plt.tight_layout()
 
 # 保存与显示
