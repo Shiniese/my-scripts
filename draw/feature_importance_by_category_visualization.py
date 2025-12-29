@@ -6,11 +6,13 @@
 功能说明：
     本脚本用于可视化“特征重要性”在不同类别中的分布情况。
     通过横向条形图展示各特征的重要性百分比，右侧下角嵌入一个扇形图，展示各类别的总重要性占比。
+    通过引入 Waffle 图，显著提升了“特征重要性按类别”可视化的能力，实现了从传统饼图到现代网格化图表的升级，增强了数据表达的直观性与可传播性。
 
 依赖库：
     - pandas：数据处理
     - matplotlib：绘图
     - mpl_toolkits.axes_grid1.inset_locator：插入子图（用于扇形图）
+    - pywaffle
 
 运行方式：
     将本脚本保存为 .py 文件，运行即可生成图片文件：
@@ -18,6 +20,7 @@
 
 输出结果：
     - 一张包含横向条形图与右下角扇形图的 PNG 图像文件
+    - 一张 Waffle 图的 PNG 图像文件
     - 图中使用 Times New Roman 字体，风格专业、美观
 
 注意事项：
@@ -129,7 +132,7 @@ ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(0.95, 0.85
 
 # 4. 绘制右下角的扇形图 (Inset Pie Chart)
 # 计算各类别的总 Importance
-category_sums = df.groupby('Category')['Importances'].sum()
+category_sums = df.groupby('Category')['Importances'].sum().sort_values(ascending=False)
 
 # 准备扇形图数据
 pie_labels = category_sums.index
@@ -157,4 +160,18 @@ for autotext in autotexts:
 # 调整整体布局
 plt.tight_layout()
 plt.savefig("Feature_Importance_By_Category.png", dpi=300)
+
+from pywaffle import Waffle
+
+# 创建图表
+fig = plt.figure(
+    FigureClass=Waffle,
+    rows=10,                 # 设置行数（列数会自动计算）
+    values=pie_sizes,            # 数据输入
+    colors=pie_colors, # 自定义颜色
+    labels=pie_labels.tolist(),
+    legend={'loc': 'upper left', 'bbox_to_anchor': (1, 1)}, # 图例位置
+)
+
+plt.savefig("Feature_Importance_By_Category-Waffle_Plot.png", dpi=300, bbox_inches='tight')
 plt.show()
