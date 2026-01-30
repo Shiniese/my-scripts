@@ -1,15 +1,36 @@
 // ==UserScript==
-// @name         Extract Images and Text from ScienceDirect
+// @name         Extract Images and Text from Academic Journals
 // @namespace    https://github.com/Shiniese
 // @version      1.0.0
-// @description  Extracts images and text from ScienceDirect pages
+// @description  Extracts images and text from Academic Journals
 // @author       Shiniese
 // @match        https://www.sciencedirect.com/science/article/pii/*
+// @match        https://pubs.acs.org/doi/*
 // @grant        GM_setClipboard
 // ==/UserScript==
 
 (function () {
     'use strict';
+
+    // ===================== 平台检测 =====================
+    const PLATFORM = {
+        SCIENCEDIRECT: 'sciencedirect',
+        ACS: 'pubs.acs.org'
+    };
+
+    function detectPlatform() {
+        const host = window.location.hostname;
+        if (host.includes('sciencedirect.com')) return PLATFORM.SCIENCEDIRECT;
+        if (host.includes('pubs.acs.org') | host.includes('pubs-acs-org')) return PLATFORM.ACS;
+        return null;
+    }
+
+    const currentPlatform = detectPlatform();
+    console.log('[学术期刊图片和文本提取器] 脚本启动, 平台:', currentPlatform, '域名:', window.location.hostname);
+    if (!currentPlatform) {
+        console.log('[学术期刊图片和文本提取器] 未识别的平台，退出');
+        return;
+    }
 
     /* ========== UI 样式 ========== */
     const style = document.createElement('style');
@@ -82,7 +103,7 @@
 
         const title = document.createElement('div');
         title.className = 'sd-extractor-title';
-        title.textContent = 'ScienceDirect Tools';
+        title.textContent = 'Academic Journals Tools';
 
         const imageBtn = document.createElement('button');
         imageBtn.className = 'sd-extractor-btn sd-btn-image';
@@ -103,22 +124,33 @@
 
     /* ========== 提取图片 ========== */
     function extractImages() {
-        const imageLinks = [];
-        let links = document.querySelectorAll(
-            'a[href^="https://ars.els-cdn.com/content/image/"][href$="_lrg.jpg"]'
-        );
+        let imageLinks = [];
+        let linksTags = [];
 
-        if (links.length === 0) {
-            links = document.querySelectorAll(
-                'a[href^="http://hs.ars.els-cdn.com"][href$="_lrg.jpg"]'
+        switch (currentPlatform) {
+        case PLATFORM.SCIENCEDIRECT:
+            linksTags = document.querySelectorAll(
+                'a[href^="https://ars.els-cdn.com/content/image/"][href$="_lrg.jpg"]'
             );
+            break;
+        case PLATFORM.ACS:
+            linksTags = document.querySelectorAll(
+                'a[href^="/cms/"][href$=".jpeg"]'
+            );
+            break;
+        default:
+            console.log("没有检测到可用平台！");
+            break;
         }
 
-        links.forEach(link => imageLinks.push(link.href));
+        linksTags.forEach(link => imageLinks.push(link.href));
 
-        if (imageLinks.length > 0) {
-            const text = imageLinks.join('\n');
-            if (confirm(`Found ${imageLinks.length} images.\n\nCopy to clipboard?`)) {
+        // 去重：使用 Set
+        const uniqueImageLinks = [...new Set(imageLinks)];
+
+        if (uniqueImageLinks.length > 0) {
+            const text = uniqueImageLinks.join('\n');
+            if (confirm(`Found ${uniqueImageLinks.length} images.\n\nCopy to clipboard?`)) {
                 GM_setClipboard(text);
                 alert('Image links copied to clipboard.');
             }
@@ -129,15 +161,56 @@
 
     /* ========== 提取文本 ========== */
     function extractText() {
-        const selectors = [
-            '#publication',
-            '#screen-reader-main-title',
-            '.abstract.author',
-            '#body'
-        ];
+        let selectors = [];
+
+        switch (currentPlatform) {
+        case PLATFORM.SCIENCEDIRECT:
+            selectors = [
+                '#publication',
+                '#screen-reader-main-title',
+                '.abstract.author',
+                '#body'
+            ];
+            break;
+        case PLATFORM.ACS:
+            // 1. 获取所有 class 为 'article__copy' 的元素
+            const elements = document.querySelectorAll('.article__copy');
+            if (elements) {
+                // 2. 遍历每一个元素，移除它
+                for (let i = elements.length - 1; i >= 0; i--) {
+                    elements[i].remove();
+                }
+            }
+            // 可选：添加一个提示，告诉用户操作已完成
+            console.log('✅ 已移除所有 class 为 "article__copy" 的元素。');
+
+            selectors = [
+                '.breadcrumbs__item',
+                '.article_header-title',
+                '.article_header-doiurl',
+                'time',
+                '#Abstract',
+                '.articleBody_abstractText',
+                '#sec1',
+                '#sec2',
+                '#sec3',
+                '#sec4',
+                '#sec5',
+                '#sec6',
+                '#sec7',
+                '#sec8',
+                '#sec9',
+                '#sec10',
+                '.author-information-subsection-header',
+                '.authorItemInformation',
+            ];
+            break;
+        default:
+            console.log("没有检测到可用平台！");
+            break;
+        }
 
         let text = '';
-
         selectors.forEach(sel => {
             const el = document.querySelector(sel);
             if (el) {
