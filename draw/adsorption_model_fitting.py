@@ -18,6 +18,8 @@ HPLC原始数据处理与吸附等温线拟合脚本
     |------------------|-------------------|-----------------|
     | 0.1              | 1234567           | 1234            |
     | 0.2              | 1345678           | 1567            |
+    | 0.1              | 5521544           | 6485            |
+    | 0.2              | 8855522           | 9578            |
 
 📌 输出内容：
     1. 新CSV文件（含计算字段）：xxx-caculated.csv
@@ -75,8 +77,28 @@ data = pd.read_csv(csv_file_path)
 data['Removal Ratio'] = 1 - data[after_peak_area_name] / data[initial_peak_area_name]
 data['Ce(mg/L)'] = (1 - data['Removal Ratio']) * data[initial_conc_name] * MW
 data['Qe(mg/g)'] = data[initial_conc_name] * data['Removal Ratio'] * MW / adsorbent_conc_g_L
-Qe = data['Qe(mg/g)']
-Ce = data['Ce(mg/L)']
+
+# 使用 groupby 直接聚合所有需要的统计量
+stats = (
+    data
+    .groupby(initial_conc_name)
+    .agg(
+        **{
+            'Removal Ratio_mean': ('Removal Ratio', 'mean'),
+            'Removal Ratio_std': ('Removal Ratio', 'std'),
+            'Ce(mg/L)_mean': ('Ce(mg/L)', 'mean'),
+            'Ce(mg/L)_std': ('Ce(mg/L)', 'std'),
+            'Qe(mg/g)_mean': ('Qe(mg/g)', 'mean'),
+            'Qe(mg/g)_std': ('Qe(mg/g)', 'std')
+        }
+    )
+)
+
+data = data.merge(stats, on=initial_conc_name, how='left')
+
+Qe = data['Qe(mg/g)_mean'].unique()
+Ce = data['Ce(mg/L)_mean'].unique()
+
 data.to_csv(f'{csv_file_path}-caculated.csv', index=False, encoding='utf-8')
 
 # 定义模型函数
@@ -128,7 +150,7 @@ print(f"R² = {r2_freundlich:.4f}")
 # draw "Qe-Ce" figure
 plt.figure(figsize=(10,6))
 plt.errorbar(Ce, Qe, fmt='o', ecolor='red', capsize=5, 
-                color='black', label='Experimental Data')
+            yerr=data['Qe(mg/g)_std'].unique(), color='black', label='Experimental Data')
 
 
 # 绘制 Langmuir 拟合曲线
