@@ -9,9 +9,9 @@ description: 本技能用于获取指定 Bilibili 视频的文本内容，支持
 
 - **`scripts/fetch_bilibili_subtitle_content.py`** — 获取指定 Bilibili 视频的文本内容
 
-## Usage
+## `fetch_bilibili_subtitle_content.py`
 
-### `fetch_bilibili_subtitle_content.py`
+### Usage
 
 usage: fetch_bilibili_subtitle_content.py [-h] [--list-only] VIDEO_URL
 
@@ -24,9 +24,9 @@ options:
   -h, --help   show this help message and exit
   --list-only  仅显示字幕信息列表，不获取内容
 
-## Examples
+### Examples
 
-### 1. 获取完整视频文本内容
+#### 1. 获取完整视频文本内容
 
 ```bash
 uv run scripts/fetch_bilibili_subtitle_content.py "https://www.bilibili.com/video/BV1xxxxxxx"

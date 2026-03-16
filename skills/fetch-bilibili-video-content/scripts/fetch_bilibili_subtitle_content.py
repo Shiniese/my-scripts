@@ -144,13 +144,13 @@ if __name__ == "__main__":
                 print(f"{idx + 1}. [{sub['lan_doc']}] ({'AI' if sub['isAI'] else 'CC'})")
                 print(f"   ID: {sub['id']}, URL: {sub['subtitle_url']}")
         else:
-            print("未找到字幕")
+            print("未找到字幕。您的 cookie 是否过期？")
         exit(0)
 
     content = f"以下是该B站视频的字幕内容：\n\n"
     subs = fetch_bilibili_subtitles(video_url)
     if not subs:
-        print("未找到字幕，程序退出。")
+        print("未找到字幕，程序退出。您的 cookie 是否过期？")
         exit(1)
 
     # 寻找中英文字幕
