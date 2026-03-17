@@ -25,7 +25,7 @@ def _strip_tags(text: str) -> str:
 def _normalize(text: str) -> str:
     """Normalize whitespace."""
     text = re.sub(r'[ \t]+', ' ', text)
-    return re.sub(r'\n{3,}', '\n\n', text).strip()
+    return re.sub(r'[ \n]{3,}', '\n\n', text).strip()
 
 def _to_markdown(html_content: str) -> str:
     """Convert HTML to markdown."""
@@ -71,20 +71,32 @@ async def fetch_page_content(browser, url):
         # 使用 Readability-lxml 提取文章内容
         doc = Document(content)
         title = doc.title()
-        content = _to_markdown(doc.summary())
+        # content = _to_markdown(doc.summary())
+        content = _to_markdown(content)
 
         await tab.close()  # 可选：立即关闭 tab，节省资源
         return title, url, content
     except:
         return "NO_TITLE", url, "NO_CONTENT"
     
-async def web_search(search_urls: list[str]) -> list[dict[str, str]]:
+async def fetch_relevant_web_pages(search_urls: list[str]) -> list[dict[str, str]]:
     """
-    一个使代理能够基于用户查询进行网络搜索的工具，可快速访问最新的在线信息。
-    你必须首先理解我的问题，然后重构成英文关键词来调用此工具。
-
-    Args:
-        english_query: English reconstructed keywords derived from my question.
+        异步并发抓取多个网页内容，并过滤掉标题缺失或正文过短的页面。
+        该函数使用无头浏览器（基于 zd 库）访问给定的 URL 列表，提取每个页面的标题、URL 和正文文本。
+        为提升性能和减少资源消耗，浏览器启动时禁用了图片、字体及翻译功能。
+        仅保留满足以下条件的页面：
+            - 页面有有效标题（非 "NO_TITLE"）
+            - 正文内容长度不少于 500 个字符
+        参数:
+            search_urls (list[str]): 待抓取的网页 URL 列表。
+        返回:
+            list[dict[str, str]]: 包含有效页面信息的字典列表，每个字典包含：
+                - "title": 网页标题
+                - "href": 网页 URL
+                - "body": 网页正文文本（纯文本）
+        异常处理:
+            若在抓取过程中发生任何异常，函数将打印错误信息并返回空列表，
+            以确保调用方不会因单个页面失败而中断整体流程。
     """
 
     try:
@@ -104,7 +116,7 @@ async def web_search(search_urls: list[str]) -> list[dict[str, str]]:
         # 打印结果
         results_list = []
         for title, url, content in results:
-            if title == "NO_TITLE" or len(content) < 500:
+            if title == "NO_TITLE":
                 continue
             results_list.append({"title": title, "href": url, "body": content}) 
 
@@ -124,7 +136,7 @@ async def main():
     args = parser.parse_args()
 
     # 执行搜索
-    results = await web_search(args.url)
+    results = await fetch_relevant_web_pages(args.url)
     print(results)
 
 # 作为入口点运行

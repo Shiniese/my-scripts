@@ -3,7 +3,7 @@ name: web-tool
 description: The web-tool skill defines two core network skill scripts available in the system, which can be used to perform advanced queries across multiple search engines, as well as scrape and extract in-depth readable content from web pages using a headless browser.
 ---
 
-# 网页搜索与内容提取技能 (Web Search & Fetch SKILL)
+# Web Search & Fetch SKILL
 
 This document defines two core network skill scripts available in the system: `web_search.py` and `web_fetch.py`. These tools can be used to perform advanced queries across multiple search engines, as well as scrape and extract in-depth readable content from web pages using a headless browser.
 

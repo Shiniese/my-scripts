@@ -98,8 +98,8 @@ def main():
     results = search(args)
 
     if args.detailed_content:
-        from web_fetch import web_search
-        results = asyncio.run(web_search([r.get('href') for r in results]))
+        from web_fetch import fetch_relevant_web_pages
+        results = asyncio.run(fetch_relevant_web_pages([r.get('href') for r in results]))
 
     if args.readable_text:
         for i, r in enumerate(results, 1):
