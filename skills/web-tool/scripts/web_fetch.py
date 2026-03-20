@@ -64,8 +64,8 @@ async def fetch_page_content(browser, url):
 
     try:
         tab = await browser.get(url, new_tab=True)
+        await tab.select('body', timeout=50)
         await tab.sleep(10)
-        await tab.select('body')
         content = await tab.get_content()
 
         # 使用 Readability-lxml 提取文章内容
