@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Excalidraw Custom Font Override
 // @namespace    https://github.com/Shiniese
-// @version      1.0.0
+// @version      1.0.1
 // @description  Override Excalidraw fonts if URL is provided
 // @author       Shiniese
 // @license      MIT
@@ -28,7 +28,7 @@
 
   normal_font_url ? GM_addStyle(`
     @font-face {
-      font-family: '${overrideOptionToFontname.normal}';
+      font-family: 'CustomNormal';
       font-display: swap;
       src: url('${normal_font_url}') format('woff2');
     }
@@ -36,7 +36,7 @@
 
   handdrawn_font_url ? GM_addStyle(`
     @font-face {
-      font-family: '${overrideOptionToFontname.handdrawn}';
+      font-family: 'CustomHanddrawn';
       font-display: swap;
       src: url('${handdrawn_font_url}') format('woff2');
     }
@@ -44,11 +44,39 @@
 
   code_font_url ? GM_addStyle(`
     @font-face {
-      font-family: '${overrideOptionToFontname.code}';
+      font-family: 'CustomCode';
       font-display: swap;
       src: url('${code_font_url}') format('woff2');
     }
   `): "";
+
+  // 核心 Canvas Hack：拦截 context.font 的 setter
+  const originalFontDescriptor = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'font');
+
+  Object.defineProperty(CanvasRenderingContext2D.prototype, 'font', {
+    get: function () {
+      return originalFontDescriptor.get.call(this);
+    },
+    set: function (value) {
+      let newValue = value;
+      if (typeof newValue === 'string') {
+        newValue = normal_font_url ? newValue.replace(
+          overrideOptionToFontname.normal, 
+          'CustomNormal'
+        ): newValue;
+        newValue = handdrawn_font_url ? newValue.replace(
+          overrideOptionToFontname.handdrawn, 
+          'CustomHanddrawn'
+        ): newValue;
+        newValue = code_font_url ? newValue.replace(
+          overrideOptionToFontname.code, 
+          'CustomCode'
+        ): newValue;
+      }
+      // 调用原生 setter 应用修改后的值
+      originalFontDescriptor.set.call(this, newValue);
+    }
+  });
 
   console.log("Custom font CSS injected");
 })();
