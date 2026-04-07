@@ -15,6 +15,10 @@
   console.log("'Excalidraw Custom Font Override' script started");
 
   // ====== 在这里填写你的字体 URL ======
+  // "https://db.onlinewebfonts.com/t/32441506567156636049eb850b53f02a.woff2"; // Times New Roman Font
+  // "https://db.onlinewebfonts.com/t/b4a89f5837a3f561b244965550593f37.woff2"; // SimSun Font
+  // "https://db.onlinewebfonts.com/t/d67503c4ba081550d233ffc60ea4ca36.woff2" // 黑体 Font;
+  
   const normal_font_url = "https://db.onlinewebfonts.com/t/32441506567156636049eb850b53f02a.woff2"; // Times New Roman Font
   const handdrawn_font_url = "";
   const code_font_url = "";
